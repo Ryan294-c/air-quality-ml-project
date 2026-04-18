@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import joblib
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import (
@@ -12,6 +13,7 @@ from sklearn.metrics import (
     confusion_matrix,
     mean_absolute_error,
     mean_squared_error,
+    root_mean_squared_error,
     r2_score,
 )
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -20,10 +22,17 @@ from sklearn.pipeline import Pipeline
 from src.config import (
     CLASSIFICATION_MODEL_PATH,
     DATA_PATH,
+    CLASSIFICATION_CV_RESULTS_PATH,
     METRICS_PATH,
     MODEL_METADATA_PATH,
     MODELS_DIR,
+    REGRESSION_CV_RESULTS_PATH,
+    CLASSIFICATION_FEATURE_IMPORTANCE_FIGURE_PATH,
+    CLASSIFICATION_FEATURE_IMPORTANCE_PATH,
+    REGRESSION_FEATURE_IMPORTANCE_FIGURE_PATH,
+    REGRESSION_FEATURE_IMPORTANCE_PATH,
     REGRESSION_MODEL_PATH,
+    REPORTS_DIR,
 )
 from src.data_utils import (
     POLLUTANT_COLUMNS,
@@ -33,9 +42,10 @@ from src.data_utils import (
     load_dataset,
     prepare_datasets,
 )
+from src.reporting import ensure_report_directories, save_cv_results, save_feature_importance
 
 
-def train_regression_model(x_train, y_train) -> tuple[Pipeline, dict]:
+def train_regression_model(x_train, y_train) -> tuple[Pipeline, dict, list[dict]]:
     """Train and tune regression models."""
     baseline_pipeline = Pipeline(
         steps=[
@@ -73,10 +83,15 @@ def train_regression_model(x_train, y_train) -> tuple[Pipeline, dict]:
         "best_params": grid_search.best_params_,
         "best_cv_score_r2": round(float(grid_search.best_score_), 4),
     }
-    return grid_search.best_estimator_, metadata
+    top_cv_rows = save_cv_results(
+        cv_results=grid_search.cv_results_,
+        output_path=REGRESSION_CV_RESULTS_PATH,
+        score_column="mean_fit_time",
+    )
+    return grid_search.best_estimator_, metadata, top_cv_rows
 
 
-def train_classification_model(x_train, y_train) -> tuple[Pipeline, dict]:
+def train_classification_model(x_train, y_train) -> tuple[Pipeline, dict, list[dict]]:
     """Train and tune classification models."""
     baseline_pipeline = Pipeline(
         steps=[
@@ -85,7 +100,6 @@ def train_classification_model(x_train, y_train) -> tuple[Pipeline, dict]:
                 "model",
                 LogisticRegression(
                     max_iter=1000,
-                    multi_class="auto",
                 ),
             ),
         ]
@@ -120,12 +134,17 @@ def train_classification_model(x_train, y_train) -> tuple[Pipeline, dict]:
         "best_params": grid_search.best_params_,
         "best_cv_score_accuracy": round(float(grid_search.best_score_), 4),
     }
-    return grid_search.best_estimator_, metadata
+    top_cv_rows = save_cv_results(
+        cv_results=grid_search.cv_results_,
+        output_path=CLASSIFICATION_CV_RESULTS_PATH,
+        score_column="mean_fit_time",
+    )
+    return grid_search.best_estimator_, metadata, top_cv_rows
 
 
 def evaluate_regression(model: Pipeline, x_test, y_test) -> dict:
     predictions = model.predict(x_test)
-    rmse = mean_squared_error(y_test, predictions, squared=False)
+    rmse = root_mean_squared_error(y_test, predictions)
     return {
         "r2_score": round(float(r2_score(y_test, predictions)), 4),
         "mae": round(float(mean_absolute_error(y_test, predictions)), 4),
@@ -157,6 +176,24 @@ def save_training_outputs(
     joblib.dump(regression_model, REGRESSION_MODEL_PATH)
     joblib.dump(classification_model, CLASSIFICATION_MODEL_PATH)
 
+    regression_feature_names = regression_model.named_steps["preprocessor"].get_feature_names_out()
+    classification_feature_names = classification_model.named_steps["preprocessor"].get_feature_names_out()
+
+    regression_feature_importance = save_feature_importance(
+        model=regression_model,
+        feature_names=list(regression_feature_names),
+        csv_output_path=REGRESSION_FEATURE_IMPORTANCE_PATH,
+        figure_output_path=REGRESSION_FEATURE_IMPORTANCE_FIGURE_PATH,
+        title="Regression Feature Importance",
+    )
+    classification_feature_importance = save_feature_importance(
+        model=classification_model,
+        feature_names=list(classification_feature_names),
+        csv_output_path=CLASSIFICATION_FEATURE_IMPORTANCE_PATH,
+        figure_output_path=CLASSIFICATION_FEATURE_IMPORTANCE_FIGURE_PATH,
+        title="Classification Feature Importance",
+    )
+
     metadata = {
         "dataset": {
             "source": "https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india/data",
@@ -178,6 +215,10 @@ def save_training_outputs(
         "training": {
             "regression": regression_training,
             "classification": classification_training,
+        },
+        "feature_importance": {
+            "regression_top_10": regression_feature_importance,
+            "classification_top_10": classification_feature_importance,
         },
     }
 
@@ -302,6 +343,8 @@ def main() -> None:
         )
 
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_report_directories()
 
     raw_df = load_dataset(str(DATA_PATH))
     prepared = prepare_datasets(raw_df)
@@ -321,10 +364,15 @@ def main() -> None:
         stratify=prepared.classification_target,
     )
 
-    regression_model, regression_training = train_regression_model(x_train_reg, y_train_reg)
-    classification_model, classification_training = train_classification_model(
+    regression_model, regression_training, regression_cv_top_rows = train_regression_model(
+        x_train_reg, y_train_reg
+    )
+    classification_model, classification_training, classification_cv_top_rows = train_classification_model(
         x_train_clf, y_train_clf
     )
+
+    regression_training["top_cv_rows"] = regression_cv_top_rows
+    classification_training["top_cv_rows"] = classification_cv_top_rows
 
     regression_metrics = evaluate_regression(regression_model, x_test_reg, y_test_reg)
     classification_metrics = evaluate_classification(

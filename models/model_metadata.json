@@ -172,7 +172,64 @@
         "model__min_samples_split": 5,
         "model__n_estimators": 200
       },
-      "best_cv_score_r2": 0.9017
+      "best_cv_score_r2": 0.9017,
+      "top_cv_rows": [
+        {
+          "rank_test_score": 1,
+          "mean_test_score": 0.9017003993596956,
+          "std_test_score": 0.016785547977402244,
+          "mean_fit_time": 39.278879721959434,
+          "params": {
+            "model__max_depth": null,
+            "model__min_samples_split": 5,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 2,
+          "mean_test_score": 0.9013459997286545,
+          "std_test_score": 0.017259206762796367,
+          "mean_fit_time": 41.60370500882467,
+          "params": {
+            "model__max_depth": null,
+            "model__min_samples_split": 2,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 3,
+          "mean_test_score": 0.9013206083315644,
+          "std_test_score": 0.01682893798056914,
+          "mean_fit_time": 46.387569983800255,
+          "params": {
+            "model__max_depth": 20,
+            "model__min_samples_split": 2,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 4,
+          "mean_test_score": 0.901266568958392,
+          "std_test_score": 0.016869587418336104,
+          "mean_fit_time": 46.226535876592,
+          "params": {
+            "model__max_depth": 20,
+            "model__min_samples_split": 5,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 5,
+          "mean_test_score": 0.9003586566583525,
+          "std_test_score": 0.01737462905197955,
+          "mean_fit_time": 18.247629006703693,
+          "params": {
+            "model__max_depth": null,
+            "model__min_samples_split": 5,
+            "model__n_estimators": 100
+          }
+        }
+      ]
     },
     "classification": {
       "baseline_model": "LogisticRegression",
@@ -182,7 +239,150 @@
         "model__min_samples_split": 2,
         "model__n_estimators": 200
       },
-      "best_cv_score_accuracy": 0.8072
+      "best_cv_score_accuracy": 0.8072,
+      "top_cv_rows": [
+        {
+          "rank_test_score": 1,
+          "mean_test_score": 0.8071931478563679,
+          "std_test_score": 0.0012419123011736465,
+          "mean_fit_time": 14.147823890050253,
+          "params": {
+            "model__max_depth": null,
+            "model__min_samples_split": 2,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 2,
+          "mean_test_score": 0.8064889882910776,
+          "std_test_score": 0.0009131881268507181,
+          "mean_fit_time": 12.6873197555542,
+          "params": {
+            "model__max_depth": 20,
+            "model__min_samples_split": 2,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 3,
+          "mean_test_score": 0.806287768394601,
+          "std_test_score": 0.0008991010148539397,
+          "mean_fit_time": 9.844168742497763,
+          "params": {
+            "model__max_depth": 20,
+            "model__min_samples_split": 5,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 4,
+          "mean_test_score": 0.8062877532122043,
+          "std_test_score": 0.0024320233882408823,
+          "mean_fit_time": 13.874921957651773,
+          "params": {
+            "model__max_depth": null,
+            "model__min_samples_split": 5,
+            "model__n_estimators": 200
+          }
+        },
+        {
+          "rank_test_score": 5,
+          "mean_test_score": 0.8056338549716421,
+          "std_test_score": 0.0028674803022363934,
+          "mean_fit_time": 7.093353668848674,
+          "params": {
+            "model__max_depth": null,
+            "model__min_samples_split": 5,
+            "model__n_estimators": 100
+          }
+        }
+      ]
     }
+  },
+  "feature_importance": {
+    "regression_top_10": [
+      {
+        "feature": "num__PM2.5",
+        "importance": 0.49140157742269996
+      },
+      {
+        "feature": "num__CO",
+        "importance": 0.36785543473927335
+      },
+      {
+        "feature": "num__PM10",
+        "importance": 0.03640434027307639
+      },
+      {
+        "feature": "num__NO",
+        "importance": 0.03587570055354569
+      },
+      {
+        "feature": "num__O3",
+        "importance": 0.011544793800301545
+      },
+      {
+        "feature": "num__NOx",
+        "importance": 0.008713392820597365
+      },
+      {
+        "feature": "num__SO2",
+        "importance": 0.007082009627042209
+      },
+      {
+        "feature": "num__NO2",
+        "importance": 0.005537289985374112
+      },
+      {
+        "feature": "num__Toluene",
+        "importance": 0.005501676146376148
+      },
+      {
+        "feature": "num__day",
+        "importance": 0.0048647615997251354
+      }
+    ],
+    "classification_top_10": [
+      {
+        "feature": "num__PM2.5",
+        "importance": 0.22483706856855756
+      },
+      {
+        "feature": "num__PM10",
+        "importance": 0.14096711327275604
+      },
+      {
+        "feature": "num__CO",
+        "importance": 0.09181820562071787
+      },
+      {
+        "feature": "num__O3",
+        "importance": 0.05592234850448456
+      },
+      {
+        "feature": "num__NO2",
+        "importance": 0.05127984690539633
+      },
+      {
+        "feature": "num__NO",
+        "importance": 0.04937326266319039
+      },
+      {
+        "feature": "num__NOx",
+        "importance": 0.048200572124346704
+      },
+      {
+        "feature": "num__SO2",
+        "importance": 0.04647764187626325
+      },
+      {
+        "feature": "num__NH3",
+        "importance": 0.03581662743140193
+      },
+      {
+        "feature": "num__Toluene",
+        "importance": 0.035580019427334623
+      }
+    ]
   }
 }
