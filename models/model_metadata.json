@@ -1,0 +1,188 @@
+{
+  "dataset": {
+    "source": "https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india/data",
+    "filename": "city_day.csv"
+  },
+  "features": {
+    "regression": [
+      "City",
+      "PM2.5",
+      "PM10",
+      "NO",
+      "NO2",
+      "NOx",
+      "NH3",
+      "CO",
+      "SO2",
+      "O3",
+      "Benzene",
+      "Toluene",
+      "Xylene",
+      "year",
+      "month",
+      "day",
+      "day_of_week",
+      "is_weekend"
+    ],
+    "classification": [
+      "City",
+      "PM2.5",
+      "PM10",
+      "NO",
+      "NO2",
+      "NOx",
+      "NH3",
+      "CO",
+      "SO2",
+      "O3",
+      "Benzene",
+      "Toluene",
+      "Xylene",
+      "year",
+      "month",
+      "day",
+      "day_of_week",
+      "is_weekend"
+    ],
+    "pollutants": [
+      "PM2.5",
+      "PM10",
+      "NO",
+      "NO2",
+      "NOx",
+      "NH3",
+      "CO",
+      "SO2",
+      "O3",
+      "Benzene",
+      "Toluene",
+      "Xylene"
+    ]
+  },
+  "feature_defaults": {
+    "regression": {
+      "City": "Delhi",
+      "PM2.5": 48.785,
+      "PM10": 96.18,
+      "NO": 9.91,
+      "NO2": 22.1,
+      "NOx": 23.68,
+      "NH3": 16.31,
+      "CO": 0.93,
+      "SO2": 9.22,
+      "O3": 31.25,
+      "Benzene": 1.29,
+      "Toluene": 3.575,
+      "Xylene": 1.42,
+      "year": 2018.0,
+      "month": 6.0,
+      "day": 16.0,
+      "day_of_week": 3.0,
+      "is_weekend": 0.0
+    },
+    "classification": {
+      "City": "Delhi",
+      "PM2.5": 48.785,
+      "PM10": 96.18,
+      "NO": 9.91,
+      "NO2": 22.1,
+      "NOx": 23.68,
+      "NH3": 16.31,
+      "CO": 0.93,
+      "SO2": 9.22,
+      "O3": 31.25,
+      "Benzene": 1.29,
+      "Toluene": 3.575,
+      "Xylene": 1.42,
+      "year": 2018.0,
+      "month": 6.0,
+      "day": 16.0,
+      "day_of_week": 3.0,
+      "is_weekend": 0.0
+    }
+  },
+  "feature_options": {
+    "regression": {
+      "City": [
+        "Ahmedabad",
+        "Aizawl",
+        "Amaravati",
+        "Amritsar",
+        "Bengaluru",
+        "Bhopal",
+        "Brajrajnagar",
+        "Chandigarh",
+        "Chennai",
+        "Coimbatore",
+        "Delhi",
+        "Ernakulam",
+        "Gurugram",
+        "Guwahati",
+        "Hyderabad",
+        "Jaipur",
+        "Jorapokhar",
+        "Kochi",
+        "Kolkata",
+        "Lucknow",
+        "Mumbai",
+        "Patna",
+        "Shillong",
+        "Talcher",
+        "Thiruvananthapuram",
+        "Visakhapatnam"
+      ]
+    },
+    "classification": {
+      "City": [
+        "Ahmedabad",
+        "Aizawl",
+        "Amaravati",
+        "Amritsar",
+        "Bengaluru",
+        "Bhopal",
+        "Brajrajnagar",
+        "Chandigarh",
+        "Chennai",
+        "Coimbatore",
+        "Delhi",
+        "Ernakulam",
+        "Gurugram",
+        "Guwahati",
+        "Hyderabad",
+        "Jaipur",
+        "Jorapokhar",
+        "Kochi",
+        "Kolkata",
+        "Lucknow",
+        "Mumbai",
+        "Patna",
+        "Shillong",
+        "Talcher",
+        "Thiruvananthapuram",
+        "Visakhapatnam"
+      ]
+    }
+  },
+  "training": {
+    "regression": {
+      "baseline_model": "LinearRegression",
+      "final_model": "RandomForestRegressor",
+      "best_params": {
+        "model__max_depth": null,
+        "model__min_samples_split": 5,
+        "model__n_estimators": 200
+      },
+      "best_cv_score_r2": 0.9017
+    },
+    "classification": {
+      "baseline_model": "LogisticRegression",
+      "final_model": "RandomForestClassifier",
+      "best_params": {
+        "model__max_depth": null,
+        "model__min_samples_split": 2,
+        "model__n_estimators": 200
+      },
+      "best_cv_score_accuracy": 0.8072
+    }
+  }
+}
