@@ -28,8 +28,8 @@ That makes the project useful from both a technical and practical point of view:
 
 ## Live Demo
 
+- Live app: [https://aqi-india-ml.streamlit.app](https://aqi-india-ml.streamlit.app)
 - Local app: `streamlit run app/streamlit_app.py`
-- Streamlit Cloud deployment: add your deployed app link here after publishing
 
 ## Dataset
 
