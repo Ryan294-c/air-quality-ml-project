@@ -13,11 +13,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import (
+    DATA_PATH,
     CLASSIFICATION_MODEL_PATH,
     METRICS_PATH,
     MODEL_METADATA_PATH,
     REGRESSION_MODEL_PATH,
 )
+from src.train import bootstrap_models_for_deployment
 
 st.set_page_config(
     page_title="India Air Quality Predictor",
@@ -33,6 +35,15 @@ def load_artifacts():
     metadata = json.loads(MODEL_METADATA_PATH.read_text(encoding="utf-8"))
     metrics = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
     return regression_model, classification_model, metadata, metrics
+
+
+def artifacts_available() -> bool:
+    return (
+        REGRESSION_MODEL_PATH.exists()
+        and CLASSIFICATION_MODEL_PATH.exists()
+        and MODEL_METADATA_PATH.exists()
+        and METRICS_PATH.exists()
+    )
 
 
 def build_input_frame(task_name: str, metadata: dict) -> pd.DataFrame:
@@ -91,16 +102,17 @@ def main():
         "End-to-end machine learning project using the Kaggle Air Quality Data in India dataset."
     )
 
-    if not (
-        REGRESSION_MODEL_PATH.exists()
-        and CLASSIFICATION_MODEL_PATH.exists()
-        and MODEL_METADATA_PATH.exists()
-        and METRICS_PATH.exists()
-    ):
-        st.error(
-            "Model files are missing. Run `python -m src.train` after placing `city_day.csv` inside the data folder."
-        )
-        return
+    if not artifacts_available():
+        if DATA_PATH.exists():
+            with st.spinner("Preparing cloud models from the bundled dataset. This takes a minute on first launch."):
+                bootstrap_models_for_deployment()
+            st.cache_resource.clear()
+            st.success("Cloud models prepared successfully. You can use the app now.")
+        else:
+            st.error(
+                "Model files are missing and city_day.csv is not available in the deployed app."
+            )
+            return
 
     regression_model, classification_model, metadata, metrics = load_artifacts()
 

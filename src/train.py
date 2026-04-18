@@ -145,6 +145,146 @@ def evaluate_classification(model: Pipeline, x_test, y_test) -> dict:
     }
 
 
+def save_training_outputs(
+    prepared,
+    regression_model: Pipeline,
+    classification_model: Pipeline,
+    regression_training: dict,
+    classification_training: dict,
+    regression_metrics: dict,
+    classification_metrics: dict,
+) -> None:
+    joblib.dump(regression_model, REGRESSION_MODEL_PATH)
+    joblib.dump(classification_model, CLASSIFICATION_MODEL_PATH)
+
+    metadata = {
+        "dataset": {
+            "source": "https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india/data",
+            "filename": "city_day.csv",
+        },
+        "features": {
+            "regression": prepared.regression_features.columns.tolist(),
+            "classification": prepared.classification_features.columns.tolist(),
+            "pollutants": POLLUTANT_COLUMNS,
+        },
+        "feature_defaults": {
+            "regression": build_feature_defaults(prepared.regression_features),
+            "classification": build_feature_defaults(prepared.classification_features),
+        },
+        "feature_options": {
+            "regression": build_feature_options(prepared.regression_features),
+            "classification": build_feature_options(prepared.classification_features),
+        },
+        "training": {
+            "regression": regression_training,
+            "classification": classification_training,
+        },
+    }
+
+    metrics_report = {
+        "regression": regression_metrics,
+        "classification": classification_metrics,
+    }
+
+    save_json(MODEL_METADATA_PATH, metadata)
+    save_json(METRICS_PATH, metrics_report)
+
+
+def bootstrap_models_for_deployment() -> None:
+    """Train smaller models quickly when cloud artifacts are missing."""
+    if not DATA_PATH.exists():
+        raise FileNotFoundError(
+            f"Dataset not found at {DATA_PATH}. Add city_day.csv to the data folder."
+        )
+
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+
+    raw_df = load_dataset(str(DATA_PATH))
+    prepared = prepare_datasets(raw_df)
+
+    x_train_reg, x_test_reg, y_train_reg, y_test_reg = train_test_split(
+        prepared.regression_features,
+        prepared.regression_target,
+        test_size=0.2,
+        random_state=42,
+    )
+
+    x_train_clf, x_test_clf, y_train_clf, y_test_clf = train_test_split(
+        prepared.classification_features,
+        prepared.classification_target,
+        test_size=0.2,
+        random_state=42,
+        stratify=prepared.classification_target,
+    )
+
+    regression_model = Pipeline(
+        steps=[
+            ("preprocessor", build_preprocessor(x_train_reg)),
+            (
+                "model",
+                RandomForestRegressor(
+                    n_estimators=40,
+                    max_depth=12,
+                    min_samples_split=5,
+                    random_state=42,
+                    n_jobs=-1,
+                ),
+            ),
+        ]
+    )
+    regression_model.fit(x_train_reg, y_train_reg)
+
+    classification_model = Pipeline(
+        steps=[
+            ("preprocessor", build_preprocessor(x_train_clf)),
+            (
+                "model",
+                RandomForestClassifier(
+                    n_estimators=60,
+                    max_depth=12,
+                    min_samples_split=4,
+                    random_state=42,
+                    n_jobs=-1,
+                ),
+            ),
+        ]
+    )
+    classification_model.fit(x_train_clf, y_train_clf)
+
+    regression_metrics = evaluate_regression(regression_model, x_test_reg, y_test_reg)
+    classification_metrics = evaluate_classification(
+        classification_model, x_test_clf, y_test_clf
+    )
+
+    save_training_outputs(
+        prepared=prepared,
+        regression_model=regression_model,
+        classification_model=classification_model,
+        regression_training={
+            "baseline_model": "LinearRegression",
+            "final_model": "RandomForestRegressor",
+            "best_params": {
+                "model__n_estimators": 40,
+                "model__max_depth": 12,
+                "model__min_samples_split": 5,
+            },
+            "best_cv_score_r2": "quick_bootstrap",
+        },
+        classification_training={
+            "baseline_model": "LogisticRegression",
+            "final_model": "RandomForestClassifier",
+            "best_params": {
+                "model__n_estimators": 60,
+                "model__max_depth": 12,
+                "model__min_samples_split": 4,
+            },
+            "best_cv_score_accuracy": "quick_bootstrap",
+        },
+        regression_metrics=regression_metrics,
+        classification_metrics=classification_metrics,
+    )
+
+
 def save_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, default=json_safe), encoding="utf-8")
 
@@ -191,40 +331,15 @@ def main() -> None:
         classification_model, x_test_clf, y_test_clf
     )
 
-    joblib.dump(regression_model, REGRESSION_MODEL_PATH)
-    joblib.dump(classification_model, CLASSIFICATION_MODEL_PATH)
-
-    metadata = {
-        "dataset": {
-            "source": "https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india/data",
-            "filename": "city_day.csv",
-        },
-        "features": {
-            "regression": prepared.regression_features.columns.tolist(),
-            "classification": prepared.classification_features.columns.tolist(),
-            "pollutants": POLLUTANT_COLUMNS,
-        },
-        "feature_defaults": {
-            "regression": build_feature_defaults(prepared.regression_features),
-            "classification": build_feature_defaults(prepared.classification_features),
-        },
-        "feature_options": {
-            "regression": build_feature_options(prepared.regression_features),
-            "classification": build_feature_options(prepared.classification_features),
-        },
-        "training": {
-            "regression": regression_training,
-            "classification": classification_training,
-        },
-    }
-
-    metrics_report = {
-        "regression": regression_metrics,
-        "classification": classification_metrics,
-    }
-
-    save_json(MODEL_METADATA_PATH, metadata)
-    save_json(METRICS_PATH, metrics_report)
+    save_training_outputs(
+        prepared=prepared,
+        regression_model=regression_model,
+        classification_model=classification_model,
+        regression_training=regression_training,
+        classification_training=classification_training,
+        regression_metrics=regression_metrics,
+        classification_metrics=classification_metrics,
+    )
 
     print("Training complete.")
     print(f"Regression model saved to: {REGRESSION_MODEL_PATH}")
